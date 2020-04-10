@@ -3,12 +3,11 @@ import nltk
 import os
 
 resources_path = os.path.join(os.getcwd(), 'resources')
-
 data_dir       = os.path.join(resources_path, 'data')
 processed_dir  = os.path.join(resources_path, 'processed')
-
 processed_data_dir = os.path.join(processed_dir, 'data')
 
+matrix_path   = os.path.join(processed_dir, 'sparse.pickle')
 
 ### -------------------------------------|
 ### Contains utilties:                   |

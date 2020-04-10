@@ -1,8 +1,9 @@
 import os
-import numpy as np
-import scipy.sparse as sparse
-from preprocessor import preprocess_all
-from resources_manger import data_dir
+import numpy             as np
+import scipy.sparse      as sparse
+import resources_manager
+from preprocessor        import preprocess_all
+from resources_manager   import data_dir
 
 
 ### --------------------------------|
@@ -30,12 +31,17 @@ def construct_term_by_document_matrix_with_IDF(terms, documents):
 
     return matrix.tocsr()
 
+def vectorize_query(query, terms):
+    words = query.split()
+
 
 if __name__ == "__main__":
     print('Starting this super extra important task...')
     
     documents, terms = preprocess_all(data_dir)
     matrix           = construct_term_by_document_matrix_with_IDF(terms, documents)
-    print(matrix.size)
+    
+    resources_manager.dump(matrix, resources_manager.matrix_path)
+    matrix = resources_manager.load_dump(resources_manager.matrix_path)
 
     print('Done...')

@@ -1,9 +1,8 @@
 import os
-from resources_manger import processed_data_dir, \
+from resources_manager import processed_data_dir, \
                              data_dir, \
-                             load_dump, \
-                             dump, \
-                             change_extension \
+                             change_extension
+import resources_manager
 
 class Document:
     def __init__(self, filename, words_dict): 
@@ -14,10 +13,10 @@ class Document:
         return os.path.join(data_dir, self.filename)
 
     def words_dict(self):
-        return load_dump(self.dictionary_dump_path())
+        return resources_manager.load_dump(self.dictionary_dump_path())
 
     def save_words_dict(self, words_dict):
-        dump(words_dict, self.dictionary_dump_path())
+        resources_manager.dump(words_dict, self.dictionary_dump_path())
 
     def dictionary_dump_path(self):
         dump_filename = change_extension(self.filename, '-dict.pickle')

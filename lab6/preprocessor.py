@@ -3,12 +3,12 @@ import sys
 import os
 import re  
 import string
-from nltk.stem.porter import PorterStemmer
-from nltk.corpus      import stopwords
-from bs4              import BeautifulSoup
-from collections      import Counter
-from resources_manger import data_dir
-from Document         import Document
+from nltk.corpus       import stopwords
+from resources_manager import data_dir
+from collections       import Counter
+from Document          import Document
+from bs4               import BeautifulSoup
+from nltk.stem.porter  import PorterStemmer
 
 
 ### In case we'd like to leave only english words
