@@ -2,9 +2,8 @@ import scrapy
 import os
 
 main_url = 'https://en.wikipedia.org/'
-save_to  = os.path.join(os.getcwd(), 'resources', 'test') 
-num_to_download = int(100)
-# save_to  = os.path.join(os.getcwd(), 'resources', 'docs')
+save_to  = os.path.join(os.getcwd(), 'resources', 'data') 
+num_to_download = 2
 # num_to_download = int(5.2 * 1e4)
 
 ### --------------------------------|
@@ -15,7 +14,7 @@ class WikiSpider(scrapy.Spider):
     name = "wiki_spider"
     start_urls = [main_url + 'wiki/Science']
 
-    set = set(start_urls[0])
+    links = set([start_urls[0]])
 
     def parse(self, response):
         page = response.url.split('/')[-1]
@@ -25,7 +24,7 @@ class WikiSpider(scrapy.Spider):
         with open(full_filename, 'wb') as file:
             file.write(response.body)
 
-        if len(self.set) >= num_to_download:
+        if len(self.links) >= num_to_download:
             return
 
         for link in response.css('a::attr(href)').getall():
@@ -36,7 +35,7 @@ class WikiSpider(scrapy.Spider):
                'disambiguation' not in link:
 
                 next_page = main_url + link
-                if link not in self.set and len(self.set) < num_to_download:
-                    self.set.add(link)
+                if link not in self.links and len(self.links) < num_to_download:
+                    self.links.add(link)
                     yield scrapy.Request(next_page, callback = self.parse)
                     
