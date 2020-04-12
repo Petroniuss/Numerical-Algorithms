@@ -7,6 +7,7 @@ from QueryResult import QueryResult
 from preprocessor import preprocess_all
 from resources_manager import data_dir
 from nltk.stem.porter import PorterStemmer
+from sklearn.decomposition import TruncatedSVD
 
 
 # --------------------------------|
@@ -14,12 +15,10 @@ from nltk.stem.porter import PorterStemmer
 # `python search_engine.py`    |
 # --------------------------------|
 
-"""
-    TODO
-        - SVD & low rank approximation
-"""
+# TODO create some sort of interface for performing queries
 
-k = 1
+k_approx = 200
+k_largest = 3
 
 
 def query(query_text, A, terms, documents):
@@ -28,13 +27,29 @@ def query(query_text, A, terms, documents):
 
     docs_cosines = [(cosines[i], documents[i]) for i in range(len(documents))]
 
-    k_largest = heapq.nlargest(k, docs_cosines, lambda tuple: tuple[0])
-    k_largest = [QueryResult(tuple[1], tuple[0]) for tuple in k_largest]
+    k_matching = heapq.nlargest(
+        k_largest, docs_cosines, lambda tuple: tuple[0])
+    k_matching = [QueryResult(tuple[1], tuple[0]) for tuple in k_matching]
 
-    return k_largest
+    return k_matching
 
 
-def construct_term_by_document_normalized_matrix(terms, documents):
+def query_svd(query_text, A_k, svd, terms, documents):
+    """Note that here A_k is transposed, so we dot it with q"""
+    q = vectorize_query_with_IDF(query_text, terms, documents)
+    q = svd.components_.dot(q)
+    cosines = A_k.dot(q)
+
+    docs_cosines = [(cosines[i], documents[i]) for i in range(len(documents))]
+
+    k_matching = heapq.nlargest(
+        k_largest, docs_cosines, lambda tuple: tuple[0])
+    k_matching = [QueryResult(tuple[1], tuple[0]) for tuple in k_matching]
+
+    return k_matching
+
+
+def erm_by_document_normalized(terms, documents):
     matrix = sparse.lil_matrix(((len(terms), len(documents))))
     for i, doc in enumerate(documents):
         values = []
@@ -48,7 +63,7 @@ def construct_term_by_document_normalized_matrix(terms, documents):
     return matrix.tocsr()
 
 
-def construct_term_by_document_normalized_matrix_with_IDF(terms, documents):
+def term_by_document_normalized_with_IDF(terms, documents):
     N = len(documents)
     matrix = sparse.lil_matrix(((len(terms), N)), dtype=np.float32)
 
@@ -65,6 +80,34 @@ def construct_term_by_document_normalized_matrix_with_IDF(terms, documents):
             matrix[row_index, i] = normalized[j]
 
     return matrix.tocsr()
+
+
+def k_value_approximation(A, k):
+    svd = TruncatedSVD(n_components=k).fit(A.T)
+    A_k = svd.transform(A.T)
+
+    return A_k, svd
+
+
+def vectorize_query_with_IDF(query_text, terms, documents):
+    """ Returns normalized vector q. """
+    q = np.zeros(len(terms), dtype=np.float32)
+    N = len(documents)
+    stemmer = PorterStemmer()
+    words = query_text.split()
+    for word in words:
+        word = stemmer.stem(word)
+        if word in terms:
+            i = terms[word][0]
+            q[i] += 1.0
+
+    for word in set(words):
+        word = stemmer.stem(word)
+        if word in terms:
+            i = terms[word][0]
+            q[i] *= np.log(N / terms[word][1])
+
+    return normalize(q)
 
 
 def vectorize_query(query_text, terms):
@@ -90,18 +133,33 @@ def normalize(v):
     return v_normalized
 
 
-if __name__ == "__main__":
-    print('Starting this super extra important task...')
+def run_preprocessor():
+    """ Note that this might take a while..."""
+    resources_manager.ensure_resources()
 
     documents, terms = preprocess_all(data_dir)
-    matrix = construct_term_by_document_normalized_matrix_with_IDF(
-        terms, documents)
+    matrix = term_by_document_normalized_with_IDF(terms, documents)
 
-    resources_manager.dump(matrix, resources_manager.matrix_path)
-    matrix = resources_manager.load_dump(resources_manager.matrix_path)
+    resources_manager.dump_sparse(matrix)
+    resources_manager.dump_documents(documents)
+    resources_manager.dump_terms(terms)
+
+    A_k, svd = k_value_approximation(matrix, k_approx)
+    resources_manager.dump_svd(A_k, svd)
+
+
+if __name__ == "__main__":
+    print('Starting this super extra important task...')
+    # run_preprocessor()
+
+    matrix = resources_manager.load_sparse()
+    terms = resources_manager.load_terms()
+    documents = resources_manager.load_documents()
+    A_k, svd = resources_manager.load_svd()
 
     query_text = 'amateur'
 
     print(query(query_text, matrix, terms, documents))
+    print(query_svd(query_text, A_k, svd, terms, documents))
 
     print('Done...')
