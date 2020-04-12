@@ -16,7 +16,7 @@ from sklearn.decomposition import TruncatedSVD
 # --------------------------------|
 
 k_approx = 200
-k_largest = 3
+k_largest = 5
 
 
 class SearchEngine:
