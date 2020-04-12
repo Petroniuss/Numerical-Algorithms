@@ -3,26 +3,29 @@ import nltk
 import os
 
 resources_path = os.path.join(os.getcwd(), 'resources')
-data_dir       = os.path.join(resources_path, 'data')
-processed_dir  = os.path.join(resources_path, 'processed')
+data_dir = os.path.join(resources_path, 'data')
+processed_dir = os.path.join(resources_path, 'processed')
 processed_data_dir = os.path.join(processed_dir, 'data')
 
-matrix_path   = os.path.join(processed_dir, 'sparse.pickle')
+matrix_path = os.path.join(processed_dir, 'sparse.pickle')
 
-### -------------------------------------|
-### Contains utilties:                   |
-###     Saving & loading proccessed data`|
-### -------------------------------------|
+# -------------------------------------|
+# Contains utilties:                   |
+# Saving & loading proccessed data`|
+# -------------------------------------|
 
 # Todo calculate matrices and save them to files!
+
 
 def change_extension(filename, extension):
     file = filename.split('.')[0]
     return file + extension
 
+
 def dump(serializable, path):
     with open(path, "wb") as file:
         pickle.dump(serializable, file)
+
 
 def load_dump(path):
     serializable = None
