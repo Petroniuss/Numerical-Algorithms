@@ -12,7 +12,7 @@ from sklearn.decomposition import TruncatedSVD
 
 # --------------------------------|
 # In order to execute run:        |
-# `python search_engine.py`    |
+#     `python search_engine.py`   |
 # --------------------------------|
 
 k_approx = 200

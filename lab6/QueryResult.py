@@ -6,11 +6,10 @@ class QueryResult:
 
     def __str__(self):
         document = str(self.document)
-        line    = (f'Similarity - {self.similarity_measure:.2f}').center(26)
+        line = (f'Similarity - {self.similarity_measure:.2f}').center(26)
         footer = '=' * 26
 
         return document + line + '\n' + footer + '\n'
-
 
     def __repr__(self):
         return str(self)
