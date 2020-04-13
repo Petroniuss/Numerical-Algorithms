@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_cors import CORS
 from SearchEngine import SearchEngine
 from QueryResponse import QueryResponse, from_query_result
 
@@ -9,6 +10,8 @@ from QueryResponse import QueryResponse, from_query_result
 
 app = Flask(__name__)
 engine = SearchEngine()
+
+CORS(app)
 
 
 @app.route('/query', methods=['GET'])
@@ -22,7 +25,7 @@ def query():
         k = int(k_largest)
 
     results = None
-    if use_svd == 'False':
+    if use_svd == 'false':
         results = engine.query(query_text, use_svd=False, k_largest=k)
     else:
         results = engine.query(query_text, k_largest=k)

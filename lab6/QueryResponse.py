@@ -5,15 +5,15 @@ import QueryResult
 class QueryResponse:
 
     def __init__(self, article, link, similarity):
-        self.link = link
-        self.article = article
+        self.link = link.replace('\\', '\\\\')
+        self.article = article.replace('_', ' ')
         self.similarity = similarity
 
     def __repr__(self):
         return """{{
-                    article: "{}",
-                    link: "{}",
-                    similarity: {:.5f}
+                    "article": "{}",
+                    "link": "{}",
+                    "similarity": {:.5f}
                   }} 
                """.format(self.article, self.link, self.similarity)
 

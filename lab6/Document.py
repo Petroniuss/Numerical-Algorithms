@@ -20,7 +20,7 @@ class Document:
         return str(self)
 
     def link(self):
-        return os.path.join(data_dir, self.filename)
+        return 'https://en.wikipedia.org/wiki/' + self.filename.replace('.html', '')
 
     def words_dict(self):
         return resources_manager.load_dump(self.dictionary_dump_path())
