@@ -3,7 +3,7 @@ import os
 
 main_url = 'https://en.wikipedia.org/'
 save_to = os.path.join(os.getcwd(), 'resources', 'data')
-num_to_download = 100
+num_to_download = 1000
 # num_to_download = int(5.2 * 1e4)
 
 # --------------------------------|

@@ -12,11 +12,10 @@ from sklearn.decomposition import TruncatedSVD
 
 # --------------------------------|
 # In order to execute run:        |
-#     `python search_engine.py`   |
+#     `python SearchEngine.py`   |
 # --------------------------------|
 
 k_approx = 200
-k_largest = 5
 
 
 class SearchEngine:
@@ -24,14 +23,14 @@ class SearchEngine:
 
     def __init__(self, run_preprocessor=False):
         if run_preprocessor:
-            run_preprocessor()
+            preprocessor()
 
         self.A = resources_manager.load_sparse()
         self.terms = resources_manager.load_terms()
         self.documents = resources_manager.load_documents()
         self.A_k, self.svd = resources_manager.load_svd()
 
-    def query(self, query_text, use_svd=True, k_largest=k_largest):
+    def query(self, query_text, use_svd=True, k_largest=20):
         q = self.vectorize_query(query_text)
         cosines = None
         if use_svd:
@@ -77,7 +76,7 @@ class SearchEngine:
 # ----------------------------------------------------
 
 
-def run_preprocessor():
+def preprocessor():
     """ Note that this might take a while..."""
     resources_manager.ensure_resources()
 
@@ -145,11 +144,6 @@ def normalize(v):
 if __name__ == "__main__":
     print('Starting this super extra important task...')
 
-    engine = SearchEngine()
-
-    query_text = 'amateur'
-
-    print(engine.query(query_text))
-    print(engine.query(query_text, use_svd=True))
+    SearchEngine(run_preprocessor=True)
 
     print('Done...')

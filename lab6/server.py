@@ -20,7 +20,7 @@ def query():
     use_svd = request.args.get('svd')
     k_largest = request.args.get('k')
 
-    k = 5
+    k = 20
     if k_largest:
         k = int(k_largest)
 
