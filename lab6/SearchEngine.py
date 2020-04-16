@@ -30,6 +30,10 @@ class SearchEngine:
         self.documents = resources_manager.load_documents()
         self.A_k, self.svd = resources_manager.load_svd()
 
+    def recalcuclateSVD(self, k):
+        self.A_k, self.svd = k_value_approximation(self.A, k)
+        resources_manager.dump_svd(self.A_k, self.svd)
+
     def query(self, query_text, use_svd=True, k_largest=20):
         q = self.vectorize_query(query_text)
         cosines = None

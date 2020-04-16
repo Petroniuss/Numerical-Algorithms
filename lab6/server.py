@@ -35,5 +35,13 @@ def query():
     return repr(results)
 
 
+@app.route('/svd', methods=['GET'])
+def recalculateSVD():
+    k = request.args['k']
+    engine.recalcuclateSVD(k)
+
+    return 'ok'
+
+
 if __name__ == '__main__':
     app.run(debug=True)
