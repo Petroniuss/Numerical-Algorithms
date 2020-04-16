@@ -1,0 +1,291 @@
+@import url("https://fonts.googleapis.com/css?family=Inconsolata:700");
+@import url("https://fonts.googleapis.com/css2?family=Baloo+Paaji+2&family=Girassol&display=swap");
+
+.results-container {
+  position: relative;
+  width: 64%;
+  margin: auto;
+  top: 100px;
+  color: white;
+  font-family: Girassol;
+
+  h1 {
+    margin: auto;
+    text-align: center;
+    border-bottom: 2px solid crimson;
+  }
+
+  h3 {
+    font-family: "Baloo Paaji 2";
+  }
+
+  .descr {
+    color: crimson;
+    font-family: "Baloo Paaji 2";
+    text-decoration: underline;
+    text-decoration-color: crimson;
+    position: absolute;
+    right: 0;
+  }
+
+  a {
+    color: crimson;
+    text-decoration: none;
+    font-family: "Baloo Paaji 2", cursive;
+  }
+  table {
+    width: 100%;
+  }
+
+  td {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  th {
+    text-align: center;
+  }
+
+  tr:hover {
+    box-shadow: 0 0 25px 0 crimson, 0 20px 25px 0 rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+  }
+}
+
+.container {
+  position: relative;
+  margin: auto;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 450px;
+  height: 100px;
+  .search {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    background: crimson;
+    border-radius: 50%;
+    transition: all 1s;
+    z-index: 4;
+    // box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 25px 0 crimson;
+    &:hover {
+      cursor: pointer;
+    }
+    &::before {
+      content: "";
+      position: absolute;
+      margin: auto;
+      top: 22px;
+      right: 0;
+      bottom: 0;
+      left: 22px;
+      width: 12px;
+      height: 2px;
+      background: white;
+      transform: rotate(45deg);
+      transition: all 0.5s;
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      margin: auto;
+      top: -5px;
+      right: 0;
+      bottom: 0;
+      left: -5px;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      border: 2px solid white;
+      transition: all 0.5s;
+    }
+  }
+  input {
+    font-family: "Inconsolata", monospace;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 50px;
+    outline: none;
+    border: none;
+    // border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: crimson;
+    color: white;
+    text-shadow: 0 0 10px crimson;
+    padding: 0 80px 0 20px;
+    border-radius: 30px;
+    box-shadow: 0 0 25px 0 crimson, 0 20px 25px 0 rgba(0, 0, 0, 0.2);
+
+    // box-shadow: inset 0 0 25px 0 rgba(0, 0, 0, 0.5);
+    transition: all 1s;
+    opacity: 0;
+    z-index: 5;
+    font-weight: bolder;
+    letter-spacing: 0.1em;
+    &:hover {
+      cursor: pointer;
+    }
+    &:focus {
+      width: 400px;
+      opacity: 1;
+      cursor: text;
+    }
+    &:focus ~ .search {
+      right: -350px;
+      //   background: #151515;
+      background: crimson;
+      z-index: 6;
+      &::before {
+        top: 0;
+        left: 0;
+        width: 25px;
+      }
+      &::after {
+        top: 0;
+        left: 0;
+        width: 25px;
+        height: 2px;
+        border: none;
+        background: white;
+        border-radius: 0%;
+        transform: rotate(-45deg);
+      }
+    }
+    &::placeholder {
+      color: white;
+      opacity: 0.7;
+      font-weight: bolder;
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  .results-container {
+    width: 35%;
+  }
+}
+
+.settings-box {
+  background-color: rgb(44, 44, 44);
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 220px;
+  height: 150px;
+  padding: 15px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  color: white;
+  font-family: "Baloo Paaji 2", cursive;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: 0 0 0px 0 crimson, 0 20px 25px 0 rgba(0, 0, 0, 0.2);
+
+  .checkbox-container {
+    position: relative;
+    display: block;
+    input {
+      position: absolute;
+      opacity: 0;
+      color: crimson;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 25px;
+    width: 25px;
+    border-radius: 4px;
+    background-color: rgb(29, 26, 26);
+  }
+
+  input:checked ~ .checkmark:hover {
+    display: block;
+  }
+
+  .checkmark::after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+  input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  .picker-cont {
+    position: relative;
+    display: block;
+    input {
+      background-color: rgb(29, 26, 26);
+      color: white;
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 60px;
+      height: 25px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      outline-color: crimson;
+      text-align: center;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  }
+  button {
+    background-color: crimson;
+    color: white;
+    width: 80%;
+    border-radius: 15px;
+    border: 2px solid crimson;
+    position: absolute;
+    margin: auto;
+    margin-top: 6px;
+    padding: 2px;
+    font-family: "Inconsolata", monospace;
+    font-size: 18px;
+    outline: none;
+  }
+
+  button:hover {
+    box-shadow: 0 0 10px 0 crimson, 0 20px 25px 0 rgba(0, 0, 0, 0.2);
+  }
+}

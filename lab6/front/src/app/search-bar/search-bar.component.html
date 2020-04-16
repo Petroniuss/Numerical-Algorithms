@@ -1,0 +1,43 @@
+<div class="container">
+  <form (ngSubmit)="onSearch(bar.value)">
+    <input #bar type="text" placeholder="Search..." />
+    <div class="search"></div>
+  </form>
+</div>
+<app-spinner [hidden]="!loading"></app-spinner>
+<div class="results-container" [hidden]="responses.length == 0 || loading">
+  <h1>Results</h1>
+  <table>
+    <tr *ngFor="let response of responses">
+      <td>
+        <h3>{{ response.article }}</h3>
+      </td>
+      <td style="text-align: right;">
+        <a [href]="response.link">
+          Link <fa-icon [icon]="faCoffee"></fa-icon>
+        </a>
+      </td>
+      <td style="text-align: right;">
+        <span>{{ response.similarity }}</span>
+      </td>
+    </tr>
+  </table>
+  <h3 class="descr">{{ responses.length }} results in {{ time }}s</h3>
+</div>
+
+<div class="settings-box">
+  <label class="checkbox-container"
+    >Use svd ?
+    <input [(ngModel)]="useSvd" type="checkbox" checked="checked" />
+    <span class="checkmark"></span>
+  </label>
+  <label class="picker-cont">
+    <label for="k">Results</label>
+    <input [(ngModel)]="k" type="number" id="k" name="k" />
+  </label>
+  <label class="picker-cont">
+    <label for="k">K-value-approx</label>
+    <input [(ngModel)]="k_value_approx" type="number" />
+  </label>
+  <button (click)="onSvdPressed()">Recalc svd!</button>
+</div>
