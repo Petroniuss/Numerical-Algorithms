@@ -1,5 +1,4 @@
 from flask import Flask, request
-from flask_cors import CORS
 from SearchEngine import SearchEngine
 from QueryResponse import QueryResponse, from_query_result
 
@@ -10,8 +9,6 @@ from QueryResponse import QueryResponse, from_query_result
 
 app = Flask(__name__, static_url_path='', static_folder='web/static')
 engine = SearchEngine()
-
-CORS(app)
 
 
 @app.route('/')
