@@ -8,10 +8,15 @@ from QueryResponse import QueryResponse, from_query_result
 #     `python server.py`          |
 # --------------------------------|
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='web/static')
 engine = SearchEngine()
 
 CORS(app)
+
+
+@app.route('/')
+def root():
+    return app.send_static_file('index.html')
 
 
 @app.route('/query', methods=['GET'])

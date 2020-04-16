@@ -1,5 +1,4 @@
 __pycache__
 .vscode
-docs/
 /resources/data/**
 /resources/processed/data/**
