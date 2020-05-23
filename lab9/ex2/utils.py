@@ -1,5 +1,6 @@
 from PIL import ImageFont, ImageDraw, Image, ImageOps
 import numpy as np
+import pylcs
 import cv2
 
 # One font size is assumed!
@@ -12,12 +13,14 @@ text_dir = './resources/texts/'
 fonts = {
     'georgia': fonts_dir + 'georgia.ttf',
     'times-new-roman': fonts_dir + 'times-new-roman.ttf',
+    'verdana': fonts_dir + 'verdana.ttf'
 }
 
 
 def convert_textfile(text_filename, fontname, output_filename=None):
     """
         Wrapper over `convert`.
+        Returns tuple: (img, text).
     """
     text = None
     with open(text_dir + text_filename, 'r') as file:
@@ -26,7 +29,7 @@ def convert_textfile(text_filename, fontname, output_filename=None):
     if output_filename is None:
         output_filename = text_filename.split('.')[0]
 
-    return convert(text, fontname, output_filename)
+    return convert(text, fontname, output_filename), text
 
 
 def convert(text, fontname, output_filename):
@@ -53,3 +56,10 @@ def convert(text, fontname, output_filename):
     img.save(img_dir + output_filename + '.png')
 
     return np.array(img)
+
+
+def measure_correctness(ocr_result, actual_text):
+    n = len(actual_text)
+    lcs = pylcs.lcs(ocr_result, actual_text)
+
+    return lcs / n * 100.0
