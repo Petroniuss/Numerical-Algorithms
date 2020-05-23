@@ -1,10 +1,13 @@
 from PIL import ImageFont, ImageDraw, Image, ImageOps
 import numpy as np
 import pylcs
+import string
 import cv2
 
 # One font size is assumed!
 FONT_SIZE = 24
+CHARACTERS = string.ascii_lowercase + \
+    string.ascii_uppercase + string.digits + string.punctuation
 
 fonts_dir = './resources/fonts/'
 img_dir = './resources/imgs/'
@@ -56,6 +59,35 @@ def convert(text, fontname, output_filename):
     img.save(img_dir + output_filename + '.png')
 
     return np.array(img)
+
+
+def character_img(chr, fontname):
+    """
+        Returns image of given character as numpy array.
+    """
+    font = ImageFont.truetype(fonts[fontname], size=FONT_SIZE)
+    w, h = font.getsize(chr)
+
+    M = np.zeros((h, w), dtype=np.uint8)
+
+    img = Image.fromarray(M)
+    draw = ImageDraw.Draw(img)
+    draw.text((0, 0), chr, font=font, fill=(255))
+
+    img = ImageOps.invert(img)
+
+    return np.array(img)
+
+
+def load_characters(fontname):
+    """
+        Loads images of characters into dictionary.
+    """
+    imgs = {}
+    for chr in CHARACTERS:
+        imgs[chr] = character_img(chr, fontname)
+
+    return imgs
 
 
 def measure_correctness(ocr_result, actual_text):
