@@ -72,6 +72,15 @@ def match(img, template, threshold):
     return peak_local_max(corr, indices=True)
 
 
+def is_empty(position, template_dims, shift, taken):
+    shift_x, shift_y = shift
+    row, col = position
+    th, tw = template_dims
+
+    return np.all(taken[row-th + shift_y:row,
+                        col-tw + shift_x: col] == 0)
+
+
 def ocr(img, fontname, threshold=.95, peek=False):
     """
        ->> Optical Character Recognition <<-
@@ -83,37 +92,28 @@ def ocr(img, fontname, threshold=.95, peek=False):
 
     if peek:
         utils.peek(img)
-    characters_dict = utils.load_characters(fontname)
-
-    matched = [[None] * w for i in range(h)]
 
     templates = utils.load_characters(fontname)
-    found_characters = np.zeros(img.shape, dtype=np.uint8)
+    taken = np.zeros(img.shape, dtype=np.uint8)
+    matched = [[None] * w for i in range(h)]
+
     # FIXME -> This parameters might need adjustment!
     shift_x, shift_y = 5, 5
+    shift = shift_x, shift_y
     counter = 0
     for char, template in templates.items():
         if counter == 0:
             print(char)
-        ch, cw = template.shape
+        th, tw = template.shape
         for row, col in match(img, template, threshold):
-            taken = False
-            for y in range(row - ch + shift_y, row):
-                for x in range(col - cw + shift_x, col):
-                    if found_characters[y, x] != 0:
-                        taken = True
-                        break
-                if taken:
-                    break
-
-            if not taken:
-                found_characters[row-ch + shift_y:row,
-                                 col-cw + shift_x: col] = ord(char)
-                matched[row - ch][col - cw] = char
+            if is_empty((row, col), template.shape, shift, taken):
+                taken[row-th + shift_y:row,
+                      col-tw + shift_x: col] = ord(char)
+                matched[row - th][col - tw] = char
                 counter += 1
 
     if peek:
-        utils.peek(found_characters)
+        utils.peek(taken)
 
     text = ''
     for j in range(h):
