@@ -5,9 +5,9 @@ import string
 import cv2
 
 # One font size is assumed!
-FONT_SIZE = 24
+FONT_SIZE = 32
 CHARACTERS = string.ascii_lowercase + \
-    string.ascii_uppercase + string.digits + string.punctuation
+    string.ascii_uppercase + string.digits + "./,?!"
 
 fonts_dir = './resources/fonts/'
 img_dir = './resources/imgs/'
@@ -15,7 +15,7 @@ text_dir = './resources/texts/'
 
 fonts = {
     'georgia': fonts_dir + 'georgia.ttf',
-    'times-new-roman': fonts_dir + 'times-new-roman.ttf',
+    'times': fonts_dir + 'times-new-roman.ttf',
     'verdana': fonts_dir + 'verdana.ttf'
 }
 
@@ -26,18 +26,18 @@ def convert_textfile(text_filename, fontname, output_filename=None):
         Returns tuple: (img, text).
     """
     text = None
-    with open(text_dir + text_filename, 'r') as file:
+    with open(text_dir + text_filename + '.txt', 'r') as file:
         text = file.read()
 
     if output_filename is None:
-        output_filename = text_filename.split('.')[0]
+        output_filename = text_filename
 
     return convert(text, fontname, output_filename), text
 
 
 def convert(text, fontname, output_filename):
     """
-        Converts given text to image using given fontname. 
+        Converts given text to image using given fontname.
         Saves output and returns image as numpy array in grayscale.
     """
     font = ImageFont.truetype(fonts[fontname], size=FONT_SIZE)
@@ -82,16 +82,44 @@ def character_img(chr, fontname):
 def load_characters(fontname):
     """
         Loads images of characters into dictionary.
+        Note that they're already color-reversed and converted to binary images!
     """
     imgs = {}
     for chr in CHARACTERS:
-        imgs[chr] = character_img(chr, fontname)
+        imgs[chr] = cv2.bitwise_not(to_binary(character_img(chr, fontname)))
 
     return imgs
 
 
-def measure_correctness(ocr_result, actual_text):
+def measure_correctness(matched_text, actual_text):
     n = len(actual_text)
-    lcs = pylcs.lcs(ocr_result, actual_text)
+    lcs = pylcs.lcs(matched_text, actual_text)
 
     return lcs / n * 100.0
+
+
+def to_binary(img):
+    return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+
+
+def peek(img):
+    cv2.startWindowThread()
+    cv2.imshow("Optical Character Recogintion", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+def img_size(img):
+    w, h = img.shape
+    return w * h
+
+
+def white_pixels(img):
+    return len(np.argwhere(img == 255))
+
+
+def white_pixels_density(img):
+    """
+        Returns ration between white pixels and whole image.
+    """
+    return white_pixels(img) / img_size(img)
