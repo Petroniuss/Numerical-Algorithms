@@ -81,14 +81,29 @@ def character_img(chr, fontname):
 
 def load_characters(fontname):
     """
-        Loads images of characters into dictionary.
-        Note that they're already color-reversed and converted to binary images!
-    """
-    imgs = {}
-    for chr in CHARACTERS:
-        imgs[chr] = cv2.bitwise_not(to_binary(character_img(chr, fontname)))
+        Loads images of characters into dictionary,
+        and returns sorted dictionary based on amount of white pixels.
 
-    return imgs
+        Note that they're already color-reversed and converted to binary images!
+
+        The idea here is that larger templates (containing more white pixels)
+        might have smaller templates inside of them for example e and c or T and I.
+        To avoid mismatch we first check bigger ones!
+
+    """
+    templates = {}
+    for chr in CHARACTERS:
+        template = cv2.bitwise_not(
+            to_binary(character_img(chr, fontname)))
+        templates[chr] = normalize(template)
+
+    def sort_by(item): return -white_pixels(item[1])
+    # def sort_by(item): return -white_pixels_density(item[1])
+
+    templates = {k: v for (k, v) in sorted(
+        templates.items(), key=sort_by)}
+
+    return templates
 
 
 def measure_correctness(matched_text, actual_text):
@@ -100,6 +115,10 @@ def measure_correctness(matched_text, actual_text):
 
 def to_binary(img):
     return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+
+
+def normalize(img):
+    return img / 255
 
 
 def peek(img):
@@ -115,7 +134,7 @@ def img_size(img):
 
 
 def white_pixels(img):
-    return len(np.argwhere(img == 255))
+    return np.count_nonzero(img == 1)
 
 
 def white_pixels_density(img):

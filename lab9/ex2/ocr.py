@@ -8,7 +8,7 @@ from utils import *
 
 def denoise(img):
     """
-        Returns denoised, color-reversed binary image.
+        Returns denoised <=> color-reversed binary image.
     """
     return to_binary(cv2.bitwise_not(img))
 
@@ -60,38 +60,41 @@ def match(img, template, threshold):
     """
         Returns indicies (row, col) of found matches.
     """
-    corr = cross_correlation(img / 255, template / 255)
-    to_filter = corr < threshold * \
-        max([np.max(corr), 0.95 * len(np.argwhere(template == 255))])
+    corr = cross_correlation(img, template)
+    max_corr = np.max(corr)
 
-    corr[to_filter] = 0
+    # corr /= max_corr
+    # threshold = max(threshold, min(1.0, 3.8 * white_pixels_density(template)))
+
+    threshold = threshold * max(max_corr, threshold * white_pixels(template))
+    corr[corr < threshold] = 0
 
     return peak_local_max(corr, indices=True)
 
 
-def ocr(img, fontname, threshold=.95):
+def ocr(img, fontname, threshold=.95, peek=False):
     """
-       ->> Optical Character Recognition <<-  
+       ->> Optical Character Recognition <<-
     """
     img = denoise(img)
     img = align(img)
+    img = normalize(img)
     h, w = img.shape
 
-    utils.peek(img)
+    if peek:
+        utils.peek(img)
     characters_dict = utils.load_characters(fontname)
 
     matched = [[None] * w for i in range(h)]
-    vals = np.zeros((h, w), dtype=np.float64)
 
-    sorted_chars = list(sorted(
-        characters_dict.keys(), key=lambda ch: -white_pixels(characters_dict[ch])))
-
+    templates = utils.load_characters(fontname)
     found_characters = np.zeros(img.shape, dtype=np.uint8)
     # FIXME -> This parameters might need adjustment!
     shift_x, shift_y = 5, 5
     counter = 0
-    for char in sorted_chars:
-        template = characters_dict[char]
+    for char, template in templates.items():
+        if counter == 0:
+            print(char)
         ch, cw = template.shape
         for row, col in match(img, template, threshold):
             taken = False
@@ -109,7 +112,8 @@ def ocr(img, fontname, threshold=.95):
                 matched[row - ch][col - cw] = char
                 counter += 1
 
-    utils.peek(found_characters)
+    if peek:
+        utils.peek(found_characters)
 
     text = ''
     for j in range(h):
@@ -120,9 +124,10 @@ def ocr(img, fontname, threshold=.95):
     return text
 
 
+# verdana and georgia work greate.. Times adds dots at the begginging for some reason
 if __name__ == "__main__":
-    img, actual_text = utils.convert_textfile('lotr', 'georgia')
-    matched_text = ocr(img, 'georgia')
+    img, actual_text = utils.convert_textfile('lotr', 'verdana')
+    matched_text = ocr(img, 'verdana')
     print(actual_text)
     print(matched_text)
     print(utils.measure_correctness(matched_text, actual_text))
