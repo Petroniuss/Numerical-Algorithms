@@ -26,6 +26,8 @@ def align(img):
         Aligns text present in input image, by calculating 2d rectangle encapsulating it.
         Note that the input should be binary image!
     """
+    ff = np.real(fft2(img))
+    peek(ff / np.max(ff))
     coords = np.column_stack(np.where(img > 0))
     angle = cv2.minAreaRect(coords)[-1]
 

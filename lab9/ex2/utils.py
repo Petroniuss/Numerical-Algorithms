@@ -20,7 +20,7 @@ fonts = {
 }
 
 
-def convert_textfile(text_filename, fontname, output_filename=None):
+def convert_textfile(text_filename, fontname, output_filename=None, angle=0):
     """
         Wrapper over `convert`.
         Returns tuple: (img, text).
@@ -32,10 +32,10 @@ def convert_textfile(text_filename, fontname, output_filename=None):
     if output_filename is None:
         output_filename = text_filename
 
-    return convert(text, fontname, output_filename), text
+    return convert(text, fontname, output_filename, angle), text
 
 
-def convert(text, fontname, output_filename):
+def convert(text, fontname, output_filename, angle=0):
     """
         Converts given text to image using given fontname.
         Saves output and returns image as numpy array in grayscale.
@@ -55,6 +55,7 @@ def convert(text, fontname, output_filename):
     draw = ImageDraw.Draw(img)
     draw.text((off_x, off_y), text, font=font, fill=(255))
 
+    img = img.rotate(angle, expand=1)
     img = ImageOps.invert(img)
     img.save(img_dir + output_filename + '.png')
 
