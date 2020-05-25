@@ -7,7 +7,7 @@ import cv2
 # One font size is assumed!
 FONT_SIZE = 32
 CHARACTERS = string.ascii_lowercase + \
-    string.ascii_uppercase + string.digits + "./,?!"
+    string.ascii_uppercase + string.digits + "./,?!-"
 
 fonts_dir = './resources/fonts/'
 img_dir = './resources/imgs/'
@@ -15,7 +15,7 @@ text_dir = './resources/texts/'
 
 fonts = {
     'georgia': fonts_dir + 'georgia.ttf',
-    'times': fonts_dir + 'times-new-roman.ttf',
+    'firasans': fonts_dir + 'firasans.ttf',
     'verdana': fonts_dir + 'verdana.ttf'
 }
 

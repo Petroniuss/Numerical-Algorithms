@@ -49,11 +49,36 @@ def align(img):
 
 
 # TODO
-def add_whitesymbols(matched):
+def add_whitesymbols(matched, templates, space_size):
     """
-        Adds white symbols
+        Adds white symbols,
+        Turns matched matrix into text.
     """
-    pass
+    text = []
+    h, w = len(matched), len(matched[0])
+    for j in range(h):
+        prev_match = None
+        for i in range(w):
+            if matched[j][i] is not None:
+                if prev_match is not None:
+                    y, x, prev_char = prev_match
+                    prev_char_width = templates[prev_char].shape[1]
+
+                    dist = i - x - prev_char_width
+                    dist += 3
+                    # Now based on this distance we're going to insert spaces
+                    no_spaces = int(dist / (space_size))
+                    # print(prev_char, matched[j][i], no_spaces, dist, )
+                    text.extend(' ' * no_spaces)
+
+                text.append(matched[j][i])
+                prev_match = (j, i, matched[j][i])
+
+        # In case we matched sth in line, we append newline character
+        if prev_match is not None:
+            text.append('\n')
+
+    return "".join(text)
 
 
 def match(img, template, threshold):
@@ -94,42 +119,45 @@ def ocr(img, fontname, threshold=.95, peek=False):
         utils.peek(img)
 
     templates = utils.load_characters(fontname)
-    taken = np.zeros(img.shape, dtype=np.uint8)
+    taken = np.zeros(img.shape, dtype=np.float64)
     matched = [[None] * w for i in range(h)]
 
     # FIXME -> This parameters might need adjustment!
     shift_x, shift_y = 5, 5
     shift = shift_x, shift_y
-    counter = 0
     for char, template in templates.items():
-        if counter == 0:
-            print(char)
         th, tw = template.shape
         for row, col in match(img, template, threshold):
             if is_empty((row, col), template.shape, shift, taken):
                 taken[row-th + shift_y:row,
-                      col-tw + shift_x: col] = ord(char)
+                      col-tw + shift_x: col] = 0.5 + (np.random.random() / 2)
                 matched[row - th][col - tw] = char
-                counter += 1
 
     if peek:
         utils.peek(taken)
 
-    text = ''
-    for j in range(h):
-        for i in range(w):
-            if matched[j][i] is not None:
-                text += matched[j][i]
+    # Load templte of space to figure out space size!
+    space_templ = character_img(' ', fontname)
+    space_size = space_templ.shape[1]
+
+    text = add_whitesymbols(matched, templates, space_size)
 
     return text
 
 
-# verdana and georgia work greate.. Times adds dots at the begginging for some reason
-if __name__ == "__main__":
-    img, actual_text = utils.convert_textfile('lotr', 'verdana')
-    matched_text = ocr(img, 'verdana')
-    print(actual_text)
-    print(matched_text)
-    print(utils.measure_correctness(matched_text, actual_text))
+def test_fonts():
+    print('Measuring accuracy on famous quote from Lord of The Rings')
+    print('-' * 24)
+    for font in utils.fonts.keys():
+        img, actual_text = utils.convert_textfile('lotr', font)
+        matched_text = ocr(img, font, peek=False)
+        accuracy = utils.measure_correctness(matched_text, actual_text)
+        print(f'Font: {font} --> ' + '{:.2f}'.format(accuracy))
+        print('-' * 24)
 
-    pass
+
+# verdana and georgia work greate.. Times adds dots at the begginging for some reason
+# verdna -/
+# georiga -/
+if __name__ == "__main__":
+    test_fonts()
