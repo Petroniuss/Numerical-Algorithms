@@ -1,6 +1,7 @@
 from PIL import ImageFont, ImageDraw, Image, ImageOps
+from collections import Counter
+import PIL
 import numpy as np
-import pylcs
 import string
 import cv2
 
@@ -14,9 +15,9 @@ img_dir = './resources/imgs/'
 text_dir = './resources/texts/'
 
 fonts = {
-    'georgia': fonts_dir + 'georgia.ttf',
-    'firasans': fonts_dir + 'firasans.ttf',
-    'verdana': fonts_dir + 'verdana.ttf'
+    'georgia': fonts_dir + 'georgia.ttf',  # serif
+    'firasans': fonts_dir + 'firasans.ttf',  # sans-serif
+    'verdana': fonts_dir + 'verdana.ttf'  # sans-serif
 }
 
 
@@ -55,7 +56,7 @@ def convert(text, fontname, output_filename, angle=0):
     draw = ImageDraw.Draw(img)
     draw.text((off_x, off_y), text, font=font, fill=(255))
 
-    img = img.rotate(angle, expand=1)
+    img = img.rotate(angle, resample=PIL.Image.BILINEAR, expand=1)
     img = ImageOps.invert(img)
     img.save(img_dir + output_filename + '.png')
 
@@ -107,11 +108,23 @@ def load_characters(fontname):
     return templates
 
 
-def measure_correctness(matched_text, actual_text):
+def measure_correctness_lcs(matched_text, actual_text):
+    """
+       Measures correctness by calculating longest common substring. 
+    """
     n = len(actual_text)
-    lcs = pylcs.lcs(matched_text, actual_text)
+    lcs_len = lcs(matched_text, actual_text)
 
-    return lcs / n * 100.0
+    return lcs_len / n * 100.0
+
+
+def calc_occurences(matched_text):
+    """
+        Calcualtes occurences of each character.
+    """
+    m_co = Counter(matched_text)
+
+    return m_co
 
 
 def to_binary(img):
@@ -143,3 +156,46 @@ def white_pixels_density(img):
         Returns ration between white pixels and whole image.
     """
     return white_pixels(img) / img_size(img)
+
+
+def lcs_table(x, y):
+    """
+        Returns table construced by dynamic algorithm for finding lcs.
+    """
+    m, n = len(x), len(y)
+    dp = np.empty((m + 1, n + 1))
+
+    dp[0] = np.zeros(n + 1)
+    dp[:, 0] = np.zeros(m + 1)
+
+    for j in range(1, m + 1):
+        for i in range(1, n + 1):
+            if x[j - 1] == y[i - 1]:
+                dp[j, i] = 1 + dp[j - 1, i - 1]
+            else:
+                dp[j, i] = max(dp[j - 1, i], dp[j, i - 1])
+
+    return dp
+
+
+def lcs(x, y):
+    """
+        Returns len of longest common subsequence for given strings
+    """
+    dp = lcs_table(x, y)
+    seq = []
+    ptrs = [[-1, 0],
+            [0, -1]]
+    xs = np.empty(2)
+    j, i = len(x), len(y)
+    while j != 0 and i != 0:
+        if x[j - 1] == y[i - 1]:
+            seq.append(x[j - 1])
+            j, i = j - 1, i - 1
+        else:
+            for k in range(2):
+                xs[k] = dp[j + ptrs[k][1], i + ptrs[k][0]]
+            k = np.argmax(xs)
+            j, i = j + ptrs[k][1], i + ptrs[k][0]
+
+    return len(seq)

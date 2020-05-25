@@ -20,37 +20,27 @@ def cross_correlation(img, template):
     return np.real(ifft2(fft2(img) * fft2(np.rot90(template, 2), img.shape)))
 
 
-# FIXME
 def align(img):
     """
         Aligns text present in input image, by calculating 2d rectangle encapsulating it.
         Note that the input should be binary image!
     """
-    ff = np.real(fft2(img))
-    peek(ff / np.max(ff))
     coords = np.column_stack(np.where(img > 0))
-    angle = cv2.minAreaRect(coords)[-1]
 
-    # cv2.minAreaRect returns values in range [-90,0) as the rectangle rotates clockwise angle goes to 0,
-    # so we need to add 90 degrees to the angle
-    # otherwise, we just take the inverse of the angle to make it positive
+    neg_angle = cv2.minAreaRect(coords)[-1]
+    angle = -neg_angle
     if angle < -45:
-        angle = -(90 + angle)
-    else:
-        angle = -angle
+        angle -= 90
 
-    # rotate and align the image
-    h, w = img.shape[:2]
-    center = (w // 2, h // 2)
-    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    h, w = img.shape
+    rot_matrix = cv2.getRotationMatrix2D((w // 2, h // 2), angle, 1.0)
     rotated = cv2.warpAffine(
-        img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+        img, rot_matrix, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE, borderValue=0)
     rotated = utils.to_binary(rotated)
 
     return rotated
 
 
-# TODO
 def add_whitesymbols(matched, templates, space_size):
     """
         Adds white symbols,
@@ -58,27 +48,47 @@ def add_whitesymbols(matched, templates, space_size):
     """
     text = []
     h, w = len(matched), len(matched[0])
-    for j in range(h):
+    j, i = 0, 0
+    while j < h:
         prev_match = None
-        for i in range(w):
+        line_matches = 0
+        i = 0
+        while i < w:
             if matched[j][i] is not None:
                 if prev_match is not None:
                     y, x, prev_char = prev_match
                     prev_char_width = templates[prev_char].shape[1]
 
+                    # Now based on this distance we're going to insert spaces
                     dist = i - x - prev_char_width
                     dist += 3
-                    # Now based on this distance we're going to insert spaces
                     no_spaces = int(dist / (space_size))
-                    # print(prev_char, matched[j][i], no_spaces, dist, )
                     text.extend(' ' * no_spaces)
 
                 text.append(matched[j][i])
                 prev_match = (j, i, matched[j][i])
+                i += templates[matched[j][i]].shape[1] // 2
+                line_matches += 1
+            else:
+                i += 1
 
         # In case we matched sth in line, we append newline character
+        # Somewhat ugly hack for dealing with dots ;)
         if prev_match is not None:
-            text.append('\n')
+            flag = True
+            for fi in range(line_matches):
+                if text[-fi - 1] not in set(['.', ',']):
+                    flag = False
+                    break
+            if flag:
+                for fi in range(line_matches):
+                    text.pop()
+                j += 1
+            else:
+                text.append('\n')
+                j += templates[prev_match[2]].shape[0] // 2
+        else:
+            j += 1
 
     return "".join(text)
 
@@ -112,11 +122,13 @@ def ocr(img, fontname, threshold=.95, peek=False):
     """
        ->> Optical Character Recognition <<-
     """
+    if peek:
+        utils.peek(img)
+
     img = denoise(img)
     img = align(img)
     img = normalize(img)
     h, w = img.shape
-
     if peek:
         utils.peek(img)
 
@@ -124,8 +136,8 @@ def ocr(img, fontname, threshold=.95, peek=False):
     taken = np.zeros(img.shape, dtype=np.float64)
     matched = [[None] * w for i in range(h)]
 
-    # FIXME -> This parameters might need adjustment!
-    shift_x, shift_y = 5, 5
+    # Values yielding good results shift_x: [2..5]
+    shift_x, shift_y = 3, 5
     shift = shift_x, shift_y
     for char, template in templates.items():
         th, tw = template.shape
@@ -149,17 +161,14 @@ def ocr(img, fontname, threshold=.95, peek=False):
 
 def test_fonts():
     print('Measuring accuracy on famous quote from Lord of The Rings')
-    print('-' * 24)
+    print('-' * 32)
     for font in utils.fonts.keys():
-        img, actual_text = utils.convert_textfile('lotr', font)
+        img, actual_text = utils.convert_textfile('lotr', font, angle=-15)
         matched_text = ocr(img, font, peek=False)
-        accuracy = utils.measure_correctness(matched_text, actual_text)
-        print(f'Font: {font} --> ' + '{:.2f}'.format(accuracy))
-        print('-' * 24)
+        accuracy = utils.measure_correctness_lcs(matched_text, actual_text)
+        print(f'Font: {font} --> ' + '{:.2f}%'.format(accuracy))
+        print('-' * 32)
 
 
-# verdana and georgia work greate.. Times adds dots at the begginging for some reason
-# verdna -/
-# georiga -/
 if __name__ == "__main__":
     test_fonts()
