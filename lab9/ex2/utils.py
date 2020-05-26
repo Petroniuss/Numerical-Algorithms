@@ -36,7 +36,7 @@ def convert_textfile(text_filename, fontname, output_filename=None, angle=0):
     return convert(text, fontname, output_filename, angle), text
 
 
-def convert(text, fontname, output_filename, angle=0):
+def convert(text, fontname, output_filename=None, angle=0):
     """
         Converts given text to image using given fontname.
         Saves output and returns image as numpy array in grayscale.
@@ -56,9 +56,10 @@ def convert(text, fontname, output_filename, angle=0):
     draw = ImageDraw.Draw(img)
     draw.text((off_x, off_y), text, font=font, fill=(255))
 
-    img = img.rotate(angle, resample=PIL.Image.BILINEAR, expand=1)
+    img = img.rotate(-angle, resample=PIL.Image.BILINEAR, expand=1)
     img = ImageOps.invert(img)
-    img.save(img_dir + output_filename + '.png')
+    if output_filename is not None:
+        img.save(img_dir + output_filename + '.png')
 
     return np.array(img)
 

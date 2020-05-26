@@ -1,6 +1,7 @@
 import utils
 import numpy as np
 import cv2
+import sys
 from skimage.feature import peak_local_max
 from numpy.fft import fft2, ifft2
 from utils import *
@@ -121,6 +122,15 @@ def is_empty(position, template_dims, shift, taken):
 def ocr(img, fontname, threshold=.95, peek=False):
     """
        ->> Optical Character Recognition <<-
+
+       Arguments:
+            - img -> numpy 2d array representing img in grayscale (0 - 255)
+            - fontname -> one of supported fonts (check utils.py)
+            - threshold -> this one might mess up whole thing ;)
+            - peek -> whether to show partial results in a popup window.
+        Returns:
+            - matched text
+            - image of boundaries of matched characters
     """
     if peek:
         utils.peek(img)
@@ -156,19 +166,72 @@ def ocr(img, fontname, threshold=.95, peek=False):
 
     text = add_whitesymbols(matched, templates, space_size)
 
-    return text
+    return text, taken
 
 
-def test_fonts():
-    print('Measuring accuracy on famous quote from Lord of The Rings')
+def ocr_textfile(text_filename, fontname, angle=0, output_filename=None, peek=False):
+    """
+        Wrapper over ocr which takes textfile. 
+        Note that the file should be in texts directory!
+    """
+    img, actual_text = utils.convert_textfile(
+        text_filename, fontname, output_filename, angle)
+    matched_text, taken = ocr(img.copy(), fontname, peek=peek)
+    accuracy = utils.measure_correctness_lcs(matched_text, actual_text)
+
+    return img, taken, matched_text, accuracy
+
+
+def ocr_text(text, fontname, angle=0, output_filename=None, peek=False):
+    """
+        Wrapper over ocr which takes plain text.
+    """
+
+    img = utils.convert(text, fontname, output_filename, angle)
+    matched_text, taken = ocr(img.copy(), fontname, peek=peek)
+    accuracy = utils.measure_correctness_lcs(matched_text, text)
+
+    return img, taken, matched_text, accuracy
+
+
+def run_with_stats(text_filename, fontname, angle, peek):
+    img, _, matched_text, accuracy = ocr_textfile(
+        text_filename, fontname, angle=angle, peek=peek)
+    print(f'Font: {fontname} --> ' +
+          '{:.2f}%'.format(accuracy), end='\n\n')
+    print(matched_text)
     print('-' * 32)
-    for font in utils.fonts.keys():
-        img, actual_text = utils.convert_textfile('lotr', font, angle=-15)
-        matched_text = ocr(img, font, peek=False)
-        accuracy = utils.measure_correctness_lcs(matched_text, actual_text)
-        print(f'Font: {font} --> ' + '{:.2f}%'.format(accuracy))
-        print('-' * 32)
 
 
 if __name__ == "__main__":
-    test_fonts()
+    """
+        To run from command line pass 
+            0 - args, test all fonts on a preapred file.
+            2+ - 
+                1 - textfile located in resources/texts/ (pass a name, omit .txt)
+                2 - fontname (check utils.py)
+                3 - angle (small angles are supported: [-45, 45])
+                4 - peek (boolean) indicating whether to show images in a popup 
+
+            Example call:
+                python ocr.py lotr verdana 15 True
+    """
+    args_num = len(sys.argv)
+    if args_num < 3:
+        print('Measuring accuracy on famous quote from Lord of The Rings')
+        print('-' * 64)
+        for fontname in utils.fonts.keys():
+            run_with_stats('lotr', fontname, 0, False)
+    else:
+        text_filename = sys.argv[1]
+        fontname = sys.argv[2]
+        angle = 0
+        if args_num > 3:
+            angle = int(sys.argv[3])
+        peek = False
+        if args_num > 4:
+            peek = bool(sys.argv[4])
+
+        print('   ->> Optical Character Recognition <<- ')
+        print('-' * 64)
+        run_with_stats(text_filename, fontname, angle, peek)
