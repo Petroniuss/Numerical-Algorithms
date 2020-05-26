@@ -30,7 +30,7 @@ def align(img):
 
     neg_angle = cv2.minAreaRect(coords)[-1]
     angle = -neg_angle
-    if angle < -45:
+    if angle > 45:
         angle -= 90
 
     h, w = img.shape
@@ -77,12 +77,19 @@ def add_whitesymbols(matched, templates, space_size):
         # Somewhat ugly hack for dealing with dots ;)
         if prev_match is not None:
             flag = True
-            for fi in range(line_matches):
-                if text[-fi - 1] not in set(['.', ',']):
+            fi, i = -1, 0
+            while (i != line_matches):
+                fi -= 1
+                if text[fi + 1] in set(['.', ',']):
+                    i += 1
+                else:
                     flag = False
                     break
             if flag:
-                for fi in range(line_matches):
+                i = 0
+                while (i != line_matches):
+                    if text[-1] in set(['.', ',']):
+                        i += 1
                     text.pop()
                 j += 1
             else:
@@ -210,7 +217,7 @@ if __name__ == "__main__":
             1+ - 
                 1 - textfile located in resources/texts/ (pass a name, omit .txt)
                 2 - fontname (check utils.py)
-                3 - angle (small angles are supported: [-45, 45]) 
+                3 - angle (small angles are supported,
                     (Note that the result might be flipped in the wrong direction depending on width to height ratio)
                 4 - peek (boolean) indicating whether to show images in a popup 
 
