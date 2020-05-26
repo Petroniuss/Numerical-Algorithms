@@ -155,4 +155,4 @@ def match_with_filter(img_filename, pattern_filename,
 
     plt.imshow(matched)
 
-    return found
+    return found, correlation
