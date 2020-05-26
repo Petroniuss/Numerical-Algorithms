@@ -50,6 +50,7 @@ def add_whitesymbols(matched, templates, space_size):
     text = []
     h, w = len(matched), len(matched[0])
     j, i = 0, 0
+    prev_line_h = None
     while j < h:
         prev_match = None
         line_matches = 0
@@ -68,6 +69,7 @@ def add_whitesymbols(matched, templates, space_size):
 
                 text.append(matched[j][i])
                 prev_match = (j, i, matched[j][i])
+                prev_line_h = j + templates[matched[j][i]].shape[0] // 2
                 i += templates[matched[j][i]].shape[1] // 2
                 line_matches += 1
             else:
@@ -96,7 +98,15 @@ def add_whitesymbols(matched, templates, space_size):
                 text.append('\n')
                 j += templates[prev_match[2]].shape[0] // 2
         else:
+            if prev_line_h is not None:
+                if (j - prev_line_h) % int(utils.FONT_SIZE) == utils.FONT_SIZE - 1:
+                    text.append('\n')
+
             j += 1
+
+    # Remove all but one \n at the end.
+    while len(text) > 1 and text[-1] == '\n' and text[-2] == '\n':
+        text.pop()
 
     return "".join(text)
 
@@ -225,7 +235,7 @@ if __name__ == "__main__":
                 python ocr.py lotr georgia 15 True
     """
     args_num = len(sys.argv)
-    if args_num < 3:
+    if args_num < 2:
         print('Measuring accuracy on famous quote from Lord of The Rings')
         print('-' * 64)
         for fontname in utils.fonts.keys():

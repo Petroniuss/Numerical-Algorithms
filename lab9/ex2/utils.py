@@ -43,11 +43,16 @@ def convert(text, fontname, output_filename=None, angle=0):
     """
     font = ImageFont.truetype(fonts[fontname], size=FONT_SIZE)
     w, h = 0, 0
+    line_h = 0
     lines = text.split('\n')
     for line in lines:
         lineW, lineH = font.getsize(line)
         w = max(w, lineW)
         h += lineH
+        if lineH == 0:
+            h += line_h
+        else:
+            line_h = lineH
 
     off_x, off_y = 25, 40
     M = np.zeros((h + (2 * off_y), w + (2 * off_x)), dtype=np.uint8)
