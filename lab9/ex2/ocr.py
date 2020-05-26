@@ -205,16 +205,17 @@ def run_with_stats(text_filename, fontname, angle, peek):
 
 if __name__ == "__main__":
     """
-        To run from command line pass 
+        To run from commandline pass 
             0 - args, test all fonts on a preapred file.
-            2+ - 
+            1+ - 
                 1 - textfile located in resources/texts/ (pass a name, omit .txt)
                 2 - fontname (check utils.py)
-                3 - angle (small angles are supported: [-45, 45])
+                3 - angle (small angles are supported: [-45, 45]) 
+                    (Note that the result might be flipped in the wrong direction depending on width to height ratio)
                 4 - peek (boolean) indicating whether to show images in a popup 
 
             Example call:
-                python ocr.py lotr verdana 15 True
+                python ocr.py lotr georgia 15 True
     """
     args_num = len(sys.argv)
     if args_num < 3:
@@ -224,7 +225,10 @@ if __name__ == "__main__":
             run_with_stats('lotr', fontname, 0, False)
     else:
         text_filename = sys.argv[1]
-        fontname = sys.argv[2]
+
+        fontname = 'georgia'
+        if args_num > 2:
+            fontname = sys.argv[2]
         angle = 0
         if args_num > 3:
             angle = int(sys.argv[3])
