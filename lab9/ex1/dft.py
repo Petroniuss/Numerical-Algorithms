@@ -6,6 +6,7 @@ from numpy.fft import fft2, ifft2
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from skimage.feature import peak_local_max
 
 resources_path = './resources/'
 fish_repr_filename = resources_path + 'fish1.png'
@@ -98,6 +99,59 @@ def match_pattern(img_filename, pattern_filename,
                     matched[j:j+h, i+w] = col_border[0, :h]
 
                 found += 1
+
+    plt.imshow(matched)
+
+    return found
+
+
+def match_with_filter(img_filename, pattern_filename,
+                      threshold=.9, color=(255, 0, 0), red_channel=False):
+    # Load grayscale inverted images
+    imreadF = imread_grayscale
+    # Load red channel (for school)
+    if red_channel:
+        imreadF = imread_red_channel
+
+    im = imreadF(img_filename)
+    pattern = imreadF(pattern_filename)
+
+    # Compute convolution
+    correlation = ifft2(
+        fft2(im, im.shape) * np.rot90(fft2(pattern, im.shape), 2), im.shape)
+    # Complex -> Real
+    correlation = np.abs(correlation)
+
+    # Normalize & filter
+    maxx = np.amax(correlation)
+    correlation = correlation / maxx
+    correlation[correlation < threshold] = 0
+
+    # Box borders
+    ptrn_h, ptrn_w = pattern.shape
+    row_border = np.full(shape=(1, ptrn_w, 3), fill_value=color)
+    col_border = np.full(shape=(1, ptrn_h, 3), fill_value=color)
+
+    # Image with boxes around found pattern
+    matched = cv2.imread(img_filename)
+    matched = cv2.cvtColor(matched, cv2.COLOR_BGR2RGB)
+
+    maxims = peak_local_max(correlation, indices=True)
+
+    height, width = im.shape
+    found = 0
+    for (j, i) in maxims:
+        w, h = min(ptrn_w, width - i -
+                   1), min(ptrn_h, height - j - 1)
+        # Top border
+        matched[j, i:i+w] = row_border[0, :w, :]
+        # Left border
+        matched[j:j+h, i] = col_border[0, :h]
+        # Bottom border
+        matched[j+h, i:i+w] = row_border[0, :w]
+        # Right border
+        matched[j:j+h, i+w] = col_border[0, :h]
+        found += 1
 
     plt.imshow(matched)
 
