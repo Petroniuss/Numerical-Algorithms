@@ -100,7 +100,8 @@ def match_pattern(img_filename, pattern_filename,
 
                 found += 1
 
-    plt.imshow(matched)
+    plt.imshow(matched, interpolation='nearest')
+    plt.show()
 
     return found
 
@@ -153,6 +154,7 @@ def match_with_filter(img_filename, pattern_filename,
         matched[j:j+h, i+w] = col_border[0, :h]
         found += 1
 
-    plt.imshow(matched)
+    plt.imshow(matched, interpolation='nearest')
+    plt.show()
 
     return found, correlation
